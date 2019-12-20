@@ -1,0 +1,20 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t pgdaniel/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run pgdaniel/react-test npm test -- --coverage
+
+after_success:
+    - docker build -t pgdaniel/multi-client ./client
+    - docker build -t pgdaniel/multi-nginx ./nginx
+    - docker build -t pgdaniel/multi-server ./server
+    - docker build -t pgdaniel/multi-worker ./worker
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push pgdaniel/multi-client    
+    - docker push pgdaniel/multi-sever
+    - docker push pgdaniel/multi-nginx
+    - docker push pgdaniel/multi-worker
